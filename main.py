@@ -7,8 +7,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 
-# my_email = "ADMIN@EXAMPLE.com"
-# password = "ADMIN PASSWORD"
+my_email = "ADMIN@EXAMPLE.com"
+password = "ADMIN PASSWORD"
 
 
 
