@@ -1,6 +1,45 @@
 # storing credentials in 'ID' and 'password' form
 import json
 import random
+#Emailing Modules
+import smtplib as sl
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+
+# my_email = "ADMIN@EXAMPLE.com"
+# password = "ADMIN PASSWORD"
+
+
+
+# Define email sending function
+def send_grade_update_email(to_addrs, student_name, updated_category):
+    connection = sl.SMTP("smtp.gmail.com", 587)
+    connection.starttls()
+    connection.login(user=my_email, password=password)
+
+    # Prepare the notification email body with HTML formatting
+    email_body = f"""
+    <html>
+    <body>
+        <h2 style="color: #4CAF50;">Grade Update Notification</h2>
+        <p>Hello {student_name},</p>
+        <p>Your grades for the category "{updated_category}" have been updated. Please log in to check your new grades.</p>
+        <p>Best regards,</p>
+    </body>
+    </html>
+    """
+
+    subject = "Your Grade Has Been Updated"
+    msg = MIMEMultipart()
+    msg['From'] = my_email
+    msg['To'] = to_addrs
+    msg['Subject'] = subject
+    msg.attach(MIMEText(email_body, 'html'))
+
+    # Send the email
+    connection.send_message(msg)
+    connection.quit()
 
 # RANDOM NUMBER GENERATOR FOR STUDENTS WHEN ADMIN ADD NEW STUDENT TO REGISTER
 def generate_unique_id():
@@ -170,6 +209,9 @@ def adminlogin(id):
                     con = False
             with open('students.json', 'w') as file:
                 json.dump(students, file, indent=4)
+                # Send an email notification
+            student_name = f"{students[askid]['givenname']} {students[askid]['lastname']}"
+            send_grade_update_email(students[askid]['student_email'], student_name, "Test 1")
         elif ask == 2:
             while con:
                 ask = float(input("Mid 20% Mark\n\nEnter English mark:"))
@@ -213,6 +255,9 @@ def adminlogin(id):
                     con = False
             with open('students.json', 'w') as file:
                 json.dump(students, file, indent=4)
+                # Send an email notification
+            student_name = f"{students[askid]['givenname']} {students[askid]['lastname']}"
+            send_grade_update_email(students[askid]['student_email'], student_name, "Mid")
         elif ask == 3:
             while con:
                 ask = float(input("Test 2 10% Mark\n\nEnter English mark:"))
@@ -256,6 +301,9 @@ def adminlogin(id):
                     con = False
             with open('students.json', 'w') as file:
                 json.dump(students, file, indent=4)
+            # Send an email notification
+            student_name = f"{students[askid]['givenname']} {students[askid]['lastname']}"
+            send_grade_update_email(students[askid]['student_email'], student_name, "Test 2")
         elif ask == 4:
             while con:
                 ask = float(input("Activity 10% Mark\n\nEnter English mark:"))
@@ -299,6 +347,9 @@ def adminlogin(id):
                     con = False
             with open('students.json', 'w') as file:
                 json.dump(students, file, indent=4)
+                # Send an email notification
+            student_name = f"{students[askid]['givenname']} {students[askid]['lastname']}"
+            send_grade_update_email(students[askid]['student_email'], student_name, "Activity")
         elif ask == 5:
             while con:
                 ask = float(input("Final Exam 40% Mark\n\nEnter English mark:"))
@@ -343,6 +394,11 @@ def adminlogin(id):
             with open('students.json', 'w') as file:
                 json.dump(students, file, indent=4)
 
+
+            # Send an email notification
+            student_name = f"{students[askid]['givenname']} {students[askid]['lastname']}"
+            send_grade_update_email(students[askid]['student_email'], student_name, "Final")
+
     elif choice == 5:
         askid = input("Enter Student Id: ")
         while askid not in students:
@@ -357,6 +413,10 @@ def adminlogin(id):
                 with open('students.json', 'w') as file:
                     json.dump(students, file, indent=4)
                 print("Test 1 marks updated successfully!")
+
+                # Send an email notification
+                student_name = f"{students[askid]['givenname']} {students[askid]['lastname']}"
+                send_grade_update_email(students[askid]['student_email'], student_name, "Test 1")
             else:
                 print("Invalid Subject Name")
 
@@ -368,6 +428,9 @@ def adminlogin(id):
                 with open('students.json', 'w') as file:
                     json.dump(students, file, indent=4)
                 print("Mid marks updated successfully!")
+                # Send an email notification
+                student_name = f"{students[askid]['givenname']} {students[askid]['lastname']}"
+                send_grade_update_email(students[askid]['student_email'], student_name, "Mid")
             else:
                 print("Invalid Subject Name")
 
@@ -379,6 +442,9 @@ def adminlogin(id):
                 with open('students.json', 'w') as file:
                     json.dump(students, file, indent=4)
                 print("Test 2 marks updated successfully!")
+                # Send an email notification
+                student_name = f"{students[askid]['givenname']} {students[askid]['lastname']}"
+                send_grade_update_email(students[askid]['student_email'], student_name, "Test 2")
             else:
                 print("Invalid Subject Name")
 
@@ -390,6 +456,9 @@ def adminlogin(id):
                 with open('students.json', 'w') as file:
                     json.dump(students, file, indent=4)
                 print("Activity marks updated successfully!")
+                # Send an email notification
+                student_name = f"{students[askid]['givenname']} {students[askid]['lastname']}"
+                send_grade_update_email(students[askid]['student_email'], student_name, "Activity")
             else:
                 print("Invalid Subject Name")
 
@@ -401,12 +470,16 @@ def adminlogin(id):
                 with open('students.json', 'w') as file:
                     json.dump(students, file, indent=4)
                 print("Final marks updated successfully!")
+                # Send an email notification
+                student_name = f"{students[askid]['givenname']} {students[askid]['lastname']}"
+                send_grade_update_email(students[askid]['student_email'], student_name, "Final")
             else:
                 print("Invalid Subject Name")
         adminlogin(num)
     
 
 def studentlogin():
+    
     askid = input("Enter your Id: ")
     if askid in admin:
         askpass = input("Enter Your Password: ")
@@ -442,9 +515,67 @@ def studentdashboard(id):
 
     # Display the results 
     if choice == 1:
-        print(f"\n*********RESULTS STATUS FOR STUDENT ID: {id}*********\n")
-        for key, value in students[id]['Grades'].items():
-            print(f"{key.upper()}:\n" + "\n".join([f"{subject}: {grade if grade is not None else 'No data'}" for subject, grade in value.items()]) + "\n")
-        print("*********")
+        connection = sl.SMTP("smtp.gmail.com", 587)
+    connection.starttls()
+    connection.login(user=my_email, password=password)
+
+    # Prepare the report body with HTML formatting
+    report_body = """
+    <html>
+    <body>
+        <h2 style="color: #4CAF50;">Results Status for Student ID: {id}</h2>
+        <table border="1" style="border-collapse: collapse; width: 100%; max-width: 600px;">
+            <thead>
+                <tr style="background-color: #f2f2f2;">
+                    <th style="padding: 8px; text-align: left;">Category</th>
+                    <th style="padding: 8px; text-align: left;">Subject</th>
+                    <th style="padding: 8px; text-align: left;">Grade</th>
+                </tr>
+            </thead>
+            <tbody>
+    """.format(id=id)
+
+    for key, value in students[id]['Grades'].items():
+        report_body += f"""
+        <tr>
+            <td colspan="3" style="background-color: #f9f9f9; font-weight: bold;">{key.upper()}</td>
+        </tr>
+        """
+        for subject, grade in value.items():
+            report_body += f"""
+            <tr>
+                <td></td>
+                <td>{subject}</td>
+                <td>{grade if grade is not None else 'No data'}</td>
+            </tr>
+            """
+    
+    report_body += """
+            </tbody>
+        </table>
+        <p style="color: #555;">Please review your grades and contact us if you have any questions.</p>
+    </body>
+    </html>
+    """
+
+    # Email detailsstudents[id]['student_email']
+    to_addrs = students[id]['student_email']
+    subject = "Your Grade Report"
+    msg = MIMEMultipart()
+    msg['From'] = my_email
+    msg['To'] = to_addrs
+    msg['Subject'] = subject
+    msg.attach(MIMEText(report_body, 'html'))
+
+    # Send the email
+    connection.send_message(msg)
+    connection.quit()
+
+    # Print the report to the console
+    print(f"\nE*********RESULTS STATUS FOR STUDENT ID: {id}*********\n")
+    for key, value in students[id]['Grades'].items():
+        print(f"{key.upper()}:\n" + "\n".join([f"{subject}: {grade if grade is not None else 'No data'}" for subject, grade in value.items()]) + "\n")
+    print("*********")
 
 studentlogin()
+
