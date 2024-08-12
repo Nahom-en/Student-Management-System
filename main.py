@@ -427,42 +427,24 @@ def studentlogin():
 def studentdashboard(id):
     # Prompt user for input and validate it
     choice = int(input(
-        f"Welcome {students[id]['givenname']}\n1) Check Test 1 results (10%).\n"
-        "2) Check Mid results (20%).\n"
-        "3) Check Test 2 results (10%).\n"
-        "4) Check Activities results (15%).\n"
-        "5) Check Final results (50%).\n"
-        "6) Check Total results (100%).\n"
-        "Please enter your choice: "
+        f"Welcome {students[id]['givenname']}\n"
+        "1) Check Your Results.\n"
+            "Please enter your choice: "
     ))
     
     # Loop until a valid choice is entered
     while choice not in [1, 2, 3, 4, 5, 6]:
         choice = int(input(
             "Invalid selection. Please select correctly\n"
-            "1) Check Test 1 results (10%).\n"
-            "2) Check Mid results (20%).\n"
-            "3) Check Test 2 results (10%).\n"
-            "4) Check Activities results (15%).\n"
-            "5) Check Final results (50%).\n"
-            "6) Check Total results (100%).\n"
+            "1) Check Your Results.\n"
             "Please enter your choice: "
         ))
 
-    # Display the results based on the choice
-    results = students[id]['Grades']
+    # Display the results 
     if choice == 1:
-        print(f"Test 1 Results: {results.get('test', 'No data')}")
-    elif choice == 2:
-        print(f"Mid Results: {results.get('mid', 'No data')}")
-    elif choice == 3:
-        print(f"Test 2 Results: {results.get('test2', 'No data')}")
-    elif choice == 4:
-        print(f"Activities Results: {results.get('Activity', 'No data')}")
-    elif choice == 5:
-        print(f"Final Results: {results.get('Final', 'No data')}")
-    elif choice == 6:
-        total = results.get('Total', {})
-        print(f"Total Results: {total if total else 'No data'}")
+        print(f"\n*********RESULTS STATUS FOR STUDENT ID: {id}*********\n")
+        for key, value in students[id]['Grades'].items():
+            print(f"{key.upper()}:\n" + "\n".join([f"{subject}: {grade if grade is not None else 'No data'}" for subject, grade in value.items()]) + "\n")
+        print("*********")
 
 studentlogin()
