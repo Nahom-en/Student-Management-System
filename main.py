@@ -7,9 +7,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 
-my_email = "ADMIN@EXAMPLE.com"
-password = "ADMIN PASSWORD"
-
+my_email = "Email"
+password = "App Password:"
 
 
 # Define email sending function
@@ -77,24 +76,101 @@ def regadmin():
         json.dump(admin, file, indent=4)
     print( "New Admin has been Registered Successfully!")
 
+
+
+def update_grade(category, max_mark):
+    """Prompt user for grade input and validate it."""
+    while True:
+        try:
+            mark = float(input(f"Enter {category} mark (max {max_mark}): "))
+            if 0 <= mark <= max_mark:
+                return mark
+            else:
+                print(f"Invalid mark. It should be between 0 and {max_mark}. Try again.")
+        except ValueError:
+            print("Invalid input. Please enter a numeric value.")
+
+def calculate_totals():
+    """Calculate and update total grades and averages."""
+    print("Calculating totals...")
+    for student_id, data in students.items():
+        grades = data['Grades']
+        
+        # Check if all grades are provided
+        all_grades_provided = True
+        for category in ['test', 'mid', 'test2', 'Activity', 'Final']:
+            for subject in grades[category]:
+                if grades[category][subject] is None:
+                    all_grades_provided = False
+                    break
+            if not all_grades_provided:
+                break
+
+        if not all_grades_provided:
+            print(f"Cannot calculate totals for student {student_id} because not all grades are provided.")
+            continue
+
+        # Initialize total grades and grand total
+        total_grades = {subject: 0 for subject in grades['test'].keys()}
+        grand_total = 0
+        
+        # Calculate total marks for each subject
+        for subject in total_grades.keys():
+            total_grades[subject] = (
+                grades['Activity'].get(subject, 0) +
+                grades['Final'].get(subject, 0) +
+                grades['mid'].get(subject, 0) +
+                grades['test'].get(subject, 0) +
+                grades['test2'].get(subject, 0)
+            )
+            grand_total += total_grades[subject]
+
+        # Calculate average and round it
+        average = round(grand_total / (len(total_grades)), 2)
+        
+        # Determine pass/fail based on the grand total
+        status = "Pass" if average >= 50 else "Fail"
+
+        # Update grades with totals and status
+        grades['Total'].update({
+            "English": total_grades['English'],
+            "Amharic": total_grades['Amharic'],
+            "Maths": total_grades['Maths'],
+            "Physics": total_grades['Physics'],
+            "Chemistry": total_grades['Chemistry'],
+            "Geography": total_grades['Geography'],
+            "Grand Total": grand_total,
+            "Status": status,
+            "Average": average
+        })
+
+
+subjects = ["English", "Amharic", "Maths", "Physics", "Chemistry", "Geography"]
+
 def adminlogin(id):
+    global subjects
     num = id
+    print(f"Admin ID: {num}")  # Debug statement
     choice = int(input(f"\n****Welcome {admin[num]['givenname']}****\n1) Register new student.\n2) Register new admin.\n3) Check students result.\n4) Insert student grade.\n5) Edit Student grade.\nPlease enter your choice: "))
+    
     while choice not in [1, 2, 3, 4, 5]:
         choice = int(input(
-        "Please Enter Correct choice\n1) Register new student.\n"
-        "2) Register new admin.\n"
-        "3) Check students result.\n"
-        "4) Insert student grade.\n"
-        "5) Edit Student grade.\n"
-        "Please enter your choice: "
-    ))
+            "Please Enter Correct choice\n1) Register new student.\n"
+            "2) Register new admin.\n"
+            "3) Check students result.\n"
+            "4) Insert student grade.\n"
+            "5) Edit Student grade.\n"
+            "Please enter your choice: "
+        ))
+
     if choice == 1:
         unique_id = generate_unique_id()
         while str(unique_id) in students:
             unique_id = generate_unique_id()
         students[str(unique_id)] = {}
-
+        
+        # Collecting student details
+        print(f"Registering new student with ID {unique_id}...")
         ask1 = input(f"{unique_id} assigned for student.\nEnter student Given name: ").title()
         while not ask1.isalpha():
             ask1 = input("Invalid Characters used. Please enter student given name: ").title()
@@ -138,7 +214,7 @@ def adminlogin(id):
             "test2": {"English": None, "Amharic": None, "Maths": None, "Physics": None, "Chemistry": None, "Geography": None},
             "Activity": {"English": None, "Amharic": None, "Maths": None, "Physics": None, "Chemistry": None, "Geography": None},
             "Final": {"English": None, "Amharic": None, "Maths": None, "Physics": None, "Chemistry": None, "Geography": None},
-            "Total": {"English": None, "Amharic": None, "Maths": None, "Physics": None, "Chemistry": None, "Geography": None}
+            "Total": {"English": None, "Amharic": None, "Maths": None, "Physics": None, "Chemistry": None, "Geography": None, "Grand Total": None, "Status": None, "Average": None}
         }
 
         # Add password for student
@@ -147,9 +223,10 @@ def adminlogin(id):
         with open('students.json', 'w') as file:
             json.dump(students, file, indent=4)
         print("Student Successfully Registered!")
-        
+
     elif choice == 2:
         regadmin()
+
     elif choice == 3:
         askid = input("Enter Student Id: ")
         while askid not in students:
@@ -165,321 +242,110 @@ def adminlogin(id):
             askid = input("You Have entered invalid Student id.\nEnter Valid Student Id: ")
 
         ask = int(input(f"\nStudent Id:{askid}\nStudent Full Name: {students[askid]['givenname']} {students[askid]['lastname']}\n1)To insert test 1\n2)To insert mid\n3)To insert test 2\n4)To insert Activity\n5)To insert Final.\n"))
-        con = True
+        
+        subjects = ["English", "Amharic", "Maths", "Physics", "Chemistry", "Geography"]
         if ask == 1:
-            while con:
-                ask = float(input("Test 10% Mark\n\nEnter English mark:"))
-                students[askid]['Grades']['test']['English'] = ask
-                if ask <= 10:
-                    con = False
-            con = True
-
-            while con:    
-                ask = float(input("Enter Amharic mark:"))
-                students[askid]['Grades']['test']['Amharic'] = ask
-                if ask <= 10:
-                    con = False
-            con = True
-
-            while con:
-                ask = float(input("Enter Maths mark:"))
-                students[askid]['Grades']['test']['Maths'] = ask
-                if ask <= 10:
-                    con = False
-            con = True
-
-            while con:
-                ask = float(input("Enter Physics mark:"))
-                students[askid]['Grades']['test']['Physics'] = ask
-                if ask <= 10:
-                    con = False
-            con = True
-
-            while con:
-                ask = float(input("Enter Chemistry mark:"))
-                students[askid]['Grades']['test']['Chemistry'] = ask
-                if ask <= 10:
-                    con = False
-            con = True
-
-            while con:
-                ask = float(input("Enter Geography mark:"))
-                students[askid]['Grades']['test']['Geography'] = ask
-                if ask <= 10:
-                    con = False
+            print("Inserting grades for Test 1")
+            for subject in subjects:
+                students[askid]['Grades']['test'][subject] = update_grade(f"Test 1 mark for {subject}", 10)
+            # Calculate totals after inserting grades
+            calculate_totals()
             with open('students.json', 'w') as file:
                 json.dump(students, file, indent=4)
-                # Send an email notification
+            # Send an email notification
             student_name = f"{students[askid]['givenname']} {students[askid]['lastname']}"
             send_grade_update_email(students[askid]['student_email'], student_name, "Test 1")
+        
         elif ask == 2:
-            while con:
-                ask = float(input("Mid 20% Mark\n\nEnter English mark:"))
-                students[askid]['Grades']['mid']['English'] = ask
-                if ask <= 20:
-                    con = False
-            con = True
-
-            while con:    
-                ask = float(input("Enter Amharic mark:"))
-                students[askid]['Grades']['mid']['Amharic'] = ask
-                if ask <= 20:
-                    con = False
-            con = True
-
-            while con:
-                ask = float(input("Enter Maths mark:"))
-                students[askid]['Grades']['mid']['Maths'] = ask
-                if ask <= 20:
-                    con = False
-            con = True
-
-            while con:
-                ask = float(input("Enter Physics mark:"))
-                students[askid]['Grades']['mid']['Physics'] = ask
-                if ask <= 20:
-                    con = False
-            con = True
-
-            while con:
-                ask = float(input("Enter Chemistry mark:"))
-                students[askid]['Grades']['mid']['Chemistry'] = ask
-                if ask <= 20:
-                    con = False
-            con = True
-
-            while con:
-                ask = float(input("Enter Geography mark:"))
-                students[askid]['Grades']['mid']['Geography'] = ask
-                if ask <= 20:
-                    con = False
+            print("Inserting grades for Mid")
+            for subject in subjects:
+                students[askid]['Grades']['mid'][subject] = update_grade(f"Mid mark for {subject}", 20)
+            # Calculate totals after inserting grades
+            calculate_totals()
             with open('students.json', 'w') as file:
                 json.dump(students, file, indent=4)
-                # Send an email notification
+            # Send an email notification
             student_name = f"{students[askid]['givenname']} {students[askid]['lastname']}"
             send_grade_update_email(students[askid]['student_email'], student_name, "Mid")
+
         elif ask == 3:
-            while con:
-                ask = float(input("Test 2 10% Mark\n\nEnter English mark:"))
-                students[askid]['Grades']['test2']['English'] = ask
-                if ask <= 10:
-                    con = False
-            con = True
-
-            while con:    
-                ask = float(input("Enter Amharic mark:"))
-                students[askid]['Grades']['test2']['Amharic'] = ask
-                if ask <= 10:
-                    con = False
-            con = True
-
-            while con:
-                ask = float(input("Enter Maths mark:"))
-                students[askid]['Grades']['test2']['Maths'] = ask
-                if ask <= 10:
-                    con = False
-            con = True
-
-            while con:
-                ask = float(input("Enter Physics mark:"))
-                students[askid]['Grades']['test2']['Physics'] = ask
-                if ask <= 10:
-                    con = False
-            con = True
-
-            while con:
-                ask = float(input("Enter Chemistry mark:"))
-                students[askid]['Grades']['test2']['Chemistry'] = ask
-                if ask <= 10:
-                    con = False
-            con = True
-
-            while con:
-                ask = float(input("Enter Geography mark:"))
-                students[askid]['Grades']['test2']['Geography'] = ask
-                if ask <= 10:
-                    con = False
+            print("Inserting grades for Test 2")
+            for subject in subjects:
+                students[askid]['Grades']['test2'][subject] = update_grade(f"Test 2 mark for {subject}", 10)
+            # Calculate totals after inserting grades
+            calculate_totals()
             with open('students.json', 'w') as file:
                 json.dump(students, file, indent=4)
             # Send an email notification
             student_name = f"{students[askid]['givenname']} {students[askid]['lastname']}"
             send_grade_update_email(students[askid]['student_email'], student_name, "Test 2")
+
         elif ask == 4:
-            while con:
-                ask = float(input("Activity 10% Mark\n\nEnter English mark:"))
-                students[askid]['Grades']['Activity']['English'] = ask
-                if ask <= 10:
-                    con = False
-            con = True
-
-            while con:    
-                ask = float(input("Enter Amharic mark:"))
-                students[askid]['Grades']['Activity']['Amharic'] = ask
-                if ask <= 10:
-                    con = False
-            con = True
-
-            while con:
-                ask = float(input("Enter Maths mark:"))
-                students[askid]['Grades']['Activity']['Maths'] = ask
-                if ask <= 10:
-                    con = False
-            con = True
-
-            while con:
-                ask = float(input("Enter Physics mark:"))
-                students[askid]['Grades']['Activity']['Physics'] = ask
-                if ask <= 10:
-                    con = False
-            con = True
-
-            while con:
-                ask = float(input("Enter Chemistry mark:"))
-                students[askid]['Grades']['Activity']['Chemistry'] = ask
-                if ask <= 10:
-                    con = False
-            con = True
-
-            while con:
-                ask = float(input("Enter Geography mark:"))
-                students[askid]['Grades']['Activity']['Geography'] = ask
-                if ask <= 10:
-                    con = False
+            print("Inserting grades for Activity")
+            for subject in subjects:
+                students[askid]['Grades']['Activity'][subject] = update_grade(f"Activity mark for {subject}", 10)
+            # Calculate totals after inserting grades
+            calculate_totals()
             with open('students.json', 'w') as file:
                 json.dump(students, file, indent=4)
-                # Send an email notification
-            student_name = f"{students[askid]['givenname']} {students[askid]['lastname']}"
-            send_grade_update_email(students[askid]['student_email'], student_name, "Activity")
-        elif ask == 5:
-            while con:
-                ask = float(input("Final Exam 40% Mark\n\nEnter English mark:"))
-                students[askid]['Grades']['Final']['English'] = ask
-                if ask <= 40:
-                    con = False
-            con = True
-
-            while con:    
-                ask = float(input("Enter Amharic mark:"))
-                students[askid]['Grades']['Final']['Amharic'] = ask
-                if ask <= 40:
-                    con = False
-            con = True
-
-            while con:
-                ask = float(input("Enter Maths mark:"))
-                students[askid]['Grades']['Final']['Maths'] = ask
-                if ask <= 40:
-                    con = False
-            con = True
-
-            while con:
-                ask = float(input("Enter Physics mark:"))
-                students[askid]['Grades']['Final']['Physics'] = ask
-                if ask <= 40:
-                    con = False
-            con = True
-
-            while con:
-                ask = float(input("Enter Chemistry mark:"))
-                students[askid]['Grades']['Final']['Chemistry'] = ask
-                if ask <= 40:
-                    con = False
-            con = True
-
-            while con:
-                ask = float(input("Enter Geography mark:"))
-                students[askid]['Grades']['Final']['Geography'] = ask
-                if ask <= 40:
-                    con = False
-            with open('students.json', 'w') as file:
-                json.dump(students, file, indent=4)
-
-
             # Send an email notification
             student_name = f"{students[askid]['givenname']} {students[askid]['lastname']}"
-            send_grade_update_email(students[askid]['student_email'], student_name, "Final")
+            send_grade_update_email(students[askid]['student_email'], student_name, "Activity")
+
+        elif ask == 5:
+            print("Inserting grades for Final Exam")
+            for subject in subjects:
+                students[askid]['Grades']['Final'][subject] = update_grade(f"Final Exam mark for {subject}", 40)
+            # Calculate totals after inserting grades
+            calculate_totals()
+            with open('students.json', 'w') as file:
+                json.dump(students, file, indent=4)
+            # Send an email notification
+            student_name = f"{students[askid]['givenname']} {students[askid]['lastname']}"
+            send_grade_update_email(students[askid]['student_email'], student_name, "Final Exam")
+
+        print("Grades inserted successfully!")
 
     elif choice == 5:
         askid = input("Enter Student Id: ")
         while askid not in students:
             askid = input("You Have entered invalid Student id.\nEnter Valid Student Id: ")
 
-        ask = int(input(f"\nStudent Id:{askid}\nStudent Full Name: {students[askid]['givenname']} {students[askid]['lastname']}\n1)To Edit Test 1 Marks\n2)To Edit Mid Marks\n3)To Edit Test 2 Marks\n4)To Edit Activity Marks\n5)To Edit Final Marks\n\nPlease Choose: "))
-        if ask == 1:
-            edit_subject = input("Enter Subject Name (English, Amharic, Maths, Physics, Chemistry, Geography): ").capitalize()
-            if edit_subject in students[askid]['Grades']['test']:
-                new_grade = float(input(f"Enter new mark for {edit_subject}: "))
-                students[askid]['Grades']['test'][edit_subject] = new_grade
-                with open('students.json', 'w') as file:
-                    json.dump(students, file, indent=4)
-                print("Test 1 marks updated successfully!")
+        print("\nWhich category of scores would you like to edit?")
+        print("1) Test 1")
+        print("2) Mid")
+        print("3) Test 2")
+        print("4) Activity")
+        print("5) Final Exam")
+        edit_choice = int(input("Please enter the number of your choice: "))
 
-                # Send an email notification
-                student_name = f"{students[askid]['givenname']} {students[askid]['lastname']}"
-                send_grade_update_email(students[askid]['student_email'], student_name, "Test 1")
-            else:
-                print("Invalid Subject Name")
+        if edit_choice not in [1, 2, 3, 4, 5]:
+            print("Invalid choice. Please restart the editing process.")
+            return
 
-        elif ask == 2:
-            edit_subject = input("Enter Subject Name (English, Amharic, Maths, Physics, Chemistry, Geography): ").capitalize()
-            if edit_subject in students[askid]['Grades']['mid']:
-                new_grade = float(input(f"Enter new mark for {edit_subject}: "))
-                students[askid]['Grades']['mid'][edit_subject] = new_grade
-                with open('students.json', 'w') as file:
-                    json.dump(students, file, indent=4)
-                print("Mid marks updated successfully!")
-                # Send an email notification
-                student_name = f"{students[askid]['givenname']} {students[askid]['lastname']}"
-                send_grade_update_email(students[askid]['student_email'], student_name, "Mid")
-            else:
-                print("Invalid Subject Name")
+        categories = {1: 'test', 2: 'mid', 3: 'test2', 4: 'Activity', 5: 'Final'}
+        category = categories[edit_choice]
 
-        elif ask == 3:
-            edit_subject = input("Enter Subject Name (English, Amharic, Maths, Physics, Chemistry, Geography): ").capitalize()
-            if edit_subject in students[askid]['Grades']['test2']:
-                new_grade = float(input(f"Enter new mark for {edit_subject}: "))
-                students[askid]['Grades']['test2'][edit_subject] = new_grade
-                with open('students.json', 'w') as file:
-                    json.dump(students, file, indent=4)
-                print("Test 2 marks updated successfully!")
-                # Send an email notification
-                student_name = f"{students[askid]['givenname']} {students[askid]['lastname']}"
-                send_grade_update_email(students[askid]['student_email'], student_name, "Test 2")
+        print(f"Editing grades for {category.capitalize()}")
+        for subject in subjects:
+            current_grade = students[askid]['Grades'][category].get(subject)
+            new_grade = update_grade(f"{category.capitalize()} mark for {subject}", {"test": 10, "mid": 20, "test2": 10, "Activity": 10, "Final": 40}[category])
+            if new_grade is not None:
+                students[askid]['Grades'][category][subject] = new_grade
             else:
-                print("Invalid Subject Name")
+                print(f"No changes made for {subject}.")
+        
+        # Update Total and Average
+        calculate_totals()
 
-        elif ask == 4:
-            edit_subject = input("Enter Subject Name (English, Amharic, Maths, Physics, Chemistry, Geography): ").capitalize()
-            if edit_subject in students[askid]['Grades']['Activity']:
-                new_grade = float(input(f"Enter new mark for {edit_subject}: "))
-                students[askid]['Grades']['Activity'][edit_subject] = new_grade
-                with open('students.json', 'w') as file:
-                    json.dump(students, file, indent=4)
-                print("Activity marks updated successfully!")
-                # Send an email notification
-                student_name = f"{students[askid]['givenname']} {students[askid]['lastname']}"
-                send_grade_update_email(students[askid]['student_email'], student_name, "Activity")
-            else:
-                print("Invalid Subject Name")
+        with open('students.json', 'w') as file:
+            json.dump(students, file, indent=4)
+        print("Grades updated and total calculations are complete.")
 
-        elif ask == 5:
-            edit_subject = input("Enter Subject Name (English, Amharic, Maths, Physics, Chemistry, Geography): ").capitalize()
-            if edit_subject in students[askid]['Grades']['Final']:
-                new_grade = float(input(f"Enter new mark for {edit_subject}: "))
-                students[askid]['Grades']['Final'][edit_subject] = new_grade
-                with open('students.json', 'w') as file:
-                    json.dump(students, file, indent=4)
-                print("Final marks updated successfully!")
-                # Send an email notification
-                student_name = f"{students[askid]['givenname']} {students[askid]['lastname']}"
-                send_grade_update_email(students[askid]['student_email'], student_name, "Final")
-            else:
-                print("Invalid Subject Name")
-        adminlogin(num)
-    
+
 
 def studentlogin():
-    
+
     askid = input("Enter your Id: ")
     if askid in admin:
         askpass = input("Enter Your Password: ")
@@ -578,4 +444,3 @@ def studentdashboard(id):
     print("*********")
 
 studentlogin()
-
